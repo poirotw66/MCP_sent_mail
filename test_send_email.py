@@ -11,7 +11,9 @@ from mcp.client.sse import sse_client
 async def send_system_alert():
     """連接到 MCP Server 並發送系統警示郵件"""
     
-    server_url = "http://localhost:8080/sse"
+    # server_url = "http://localhost:8080/sse" 
+    
+    server_url = "https://email-sender-mcp-jt7pjdeeoa-de.a.run.app/sse"
     
     print(f"🔌 正在連接到 MCP Server: {server_url}")
     
