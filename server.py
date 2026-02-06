@@ -155,10 +155,11 @@ async def call_tool(name: str, arguments: Any) -> Sequence[TextContent]:
 
 
 # Streamable HTTP: stateless mode (one transport per request, suitable for Cloud Run)
+# json_response=True returns pure JSON instead of SSE, easier for HTTP clients like fetch()
 session_manager = StreamableHTTPSessionManager(
     mcp_server,
     stateless=True,
-    json_response=False,
+    json_response=True,  # Return pure JSON (easier for HTTP clients)
 )
 
 
