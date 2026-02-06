@@ -1,6 +1,6 @@
 # Email Sender MCP Server
 
-這是一個使用 Model Context Protocol (MCP) 的郵件發送服務，使用 SSE (Server-Sent Events) 傳輸協議，部署在 Google Cloud Run 上。
+這是一個使用 Model Context Protocol (MCP) 的郵件發送服務，使用 **Streamable HTTP** 傳輸協議，部署在 Google Cloud Run 上。
 
 ## ✨ 功能特色
 
@@ -8,7 +8,7 @@
 - 🎃 發送萬聖節邀請郵件（預設模板）
 - 🚨 發送系統異常警示郵件（預設模板）
 - 📎 支援附件
-- 🌐 HTTP/SSE 傳輸協議
+- 🌐 Streamable HTTP 傳輸協議（單一 `/mcp` 端點）
 - ☁️ 部署在 Google Cloud Run
 
 ## 🚀 快速開始
@@ -20,8 +20,10 @@
 ### 測試連線
 
 ```bash
-curl https://email-sender-mcp-jt7pjdeeoa-de.a.run.app/sse
+# 健康檢查
+curl https://email-sender-mcp-jt7pjdeeoa-de.a.run.app/health
 ```
+MCP 端點為 `/mcp`（GET/POST），需使用支援 Streamable HTTP 的 MCP 客戶端連線。
 
 ## 📖 使用方式
 
@@ -39,8 +41,8 @@ curl https://email-sender-mcp-jt7pjdeeoa-de.a.run.app/sse
    {
      "mcpServers": {
        "email-sender": {
-         "url": "https://email-sender-mcp-jt7pjdeeoa-de.a.run.app/sse",
-         "transport": "sse"
+         "url": "https://email-sender-mcp-jt7pjdeeoa-de.a.run.app/mcp",
+         "transport": "streamable-http"
        }
      }
    }
@@ -57,25 +59,22 @@ curl https://email-sender-mcp-jt7pjdeeoa-de.a.run.app/sse
 
 ### 在其他 MCP 客戶端中使用
 
-任何支援 MCP over SSE 的客戶端都可以連接：
+任何支援 MCP over Streamable HTTP 的客戶端都可以連接：
 
-```javascript
-// 連接配置
+```json
 {
-  "url": "https://email-sender-mcp-jt7pjdeeoa-de.a.run.app/sse",
-  "transport": "sse"
+  "url": "https://email-sender-mcp-jt7pjdeeoa-de.a.run.app/mcp",
+  "transport": "streamable-http"
 }
 ```
 
-### 使用 curl 測試（手動調用）
+### 使用 curl 測試
 
 ```bash
 # 健康檢查
 curl https://email-sender-mcp-jt7pjdeeoa-de.a.run.app/health
-
-# SSE 端點
-curl https://email-sender-mcp-jt7pjdeeoa-de.a.run.app/sse
 ```
+`/mcp` 為 MCP 協定端點，需以 MCP 客戶端（如 `test_send_email.py`）測試，不適合用 curl 直接呼叫。
 
 ## 🛠️ MCP Tools 說明
 
@@ -160,8 +159,8 @@ python server.py
 # 健康檢查
 curl http://localhost:8080/health
 
-# SSE 端點
-curl http://localhost:8080/sse
+# MCP 端點（需用 MCP 客戶端測試）
+# 本地: http://localhost:8080/mcp
 ```
 
 ## ☁️ 部署到 Google Cloud Run
@@ -343,7 +342,7 @@ curl https://email-sender-mcp-jt7pjdeeoa-de.a.run.app/health
 
 - **語言**: Python 3.11
 - **框架**: Starlette + Uvicorn
-- **協議**: Model Context Protocol (MCP) over SSE
+- **協議**: Model Context Protocol (MCP) over Streamable HTTP
 - **部署**: Google Cloud Run
 - **容器**: Docker
 
@@ -351,7 +350,7 @@ curl https://email-sender-mcp-jt7pjdeeoa-de.a.run.app/health
 
 ```
 MCP_sent_mail/
-├── server.py              # MCP Server 主程式（SSE）
+├── server.py              # MCP Server 主程式（Streamable HTTP）
 ├── sent_mail.py          # 原始郵件發送腳本（獨立使用）
 ├── requirements.txt      # Python 依賴套件
 ├── Dockerfile           # Docker 建置配置

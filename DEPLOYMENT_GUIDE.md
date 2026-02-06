@@ -78,8 +78,9 @@ python server.py
 
 輸出應該顯示：
 ```
-🚀 Starting MCP Email Sender Server on port 8080
-📧 Email Account: your-email@gmail.com
+Starting MCP Email Sender Server on port 8080 (Streamable HTTP)
+Email account: your-email@gmail.com
+Endpoints: /health, /mcp (GET/POST)
 INFO:     Uvicorn running on http://0.0.0.0:8080
 ```
 
@@ -107,22 +108,18 @@ python test_send_email.py
 
 預期輸出：
 ```
-✅ 已成功連接到 MCP Server
+Connected to MCP Server
 
-📋 可用工具:
-   - send_email: 發送自訂郵件
-   - send_halloween_invitation: 發送萬聖節邀請郵件
-   - send_system_alert: 發送系統異常警示郵件
+Available tools:
+   - send_email: ...
+   - send_halloween_invitation: ...
+   - send_system_alert: ...
 
-📧 正在發送系統警示郵件到 poirotw66@gmail.com...
+Sending system alert email to poirotw66@gmail.com...
 
-✅ 發送結果:
-{
-  "success": true,
-  "message": "郵件已成功發送至 poirotw66@gmail.com"
-}
-
-🎉 郵件發送成功！
+Result:
+{ "success": true, "message": "Email sent to ..." }
+Email sent successfully.
 ```
 
 ---
@@ -236,18 +233,16 @@ pip install mcp
 import asyncio
 import json
 from mcp import ClientSession
-from mcp.client.sse import sse_client
+from mcp.client.streamable_http import streamable_http_client
 
 async def connect_and_send_email():
-    # Cloud Run 服務 URL
-    server_url = "https://email-sender-mcp-jt7pjdeeoa-de.a.run.app/sse"
-    
-    # 建立 SSE 連線
-    async with sse_client(server_url) as (read, write):
+    # Cloud Run 服務 URL（Streamable HTTP 端點為 /mcp）
+    server_url = "https://email-sender-mcp-jt7pjdeeoa-de.a.run.app/mcp"
+
+    async with streamable_http_client(server_url) as (read, write):
         async with ClientSession(read, write) as session:
-            # 初始化連接
             await session.initialize()
-            print("✅ 已連接到 MCP Server")
+            print("Connected to MCP Server")
             
             # 列出可用工具
             tools = await session.list_tools()
@@ -301,7 +296,7 @@ result = await session.call_tool(
 
 ```bash
 # 修改 test_send_email.py 中的 server_url
-server_url = "https://your-service-url.a.run.app/sse"
+server_url = "https://your-service-url.a.run.app/mcp"
 
 # 執行測試
 python test_send_email.py
@@ -322,7 +317,7 @@ curl https://email-sender-mcp-jt7pjdeeoa-de.a.run.app/health
 }
 ```
 
-**注意**：SSE 端點不適合用 cURL 測試，需要使用 MCP 客戶端。
+**注意**：`/mcp` 端點為 MCP 協定，不適合用 cURL 測試，請使用 MCP 客戶端（如 `test_send_email.py`）。
 
 ---
 
@@ -366,7 +361,7 @@ curl https://email-sender-mcp-jt7pjdeeoa-de.a.run.app/health
 
 ### 問題 2: 連線逾時
 
-**症狀**：客戶端無法連接到 `/sse` 端點
+**症狀**：客戶端無法連接到 `/mcp` 端點
 
 **解決方案**：
 
