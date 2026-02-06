@@ -6,6 +6,8 @@
 curl -s http://localhost:8080/health | jq
 ```
 
+**If you get 307 redirect** when POSTing to `/mcp`, use the URL **with trailing slash**: `http://localhost:8080/mcp/` (all curl examples below use `/mcp/`).
+
 ## MCP endpoint (send email via tools/call)
 
 `/mcp` uses JSON-RPC. Use `Content-Type: application/json` and `Accept: application/json, text/event-stream`.
@@ -13,7 +15,7 @@ curl -s http://localhost:8080/health | jq
 ### 1. Initialize (optional, to check server response)
 
 ```bash
-curl -s -X POST http://localhost:8080/mcp \
+curl -s -X POST http://localhost:8080/mcp/ \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -d '{
@@ -33,7 +35,7 @@ curl -s -X POST http://localhost:8080/mcp \
 Replace `YOUR_EMAIL@example.com` with the recipient.
 
 ```bash
-curl -s -X POST http://localhost:8080/mcp \
+curl -s -X POST http://localhost:8080/mcp/ \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -d '{
@@ -52,7 +54,7 @@ curl -s -X POST http://localhost:8080/mcp \
 ### 3. Call tool: send_email (custom subject/body)
 
 ```bash
-curl -s -X POST http://localhost:8080/mcp \
+curl -s -X POST http://localhost:8080/mcp/ \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -d '{

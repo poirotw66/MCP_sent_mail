@@ -189,7 +189,7 @@ async def handle_health(request: Request):
     )
 
 
-app = Starlette(
+_starlette_app = Starlette(
     debug=True,
     routes=[
         Route("/health", handle_health, methods=["GET"]),
@@ -197,6 +197,20 @@ app = Starlette(
     ],
     lifespan=lifespan,
 )
+
+
+def _normalize_mcp_path_middleware(app):
+    """Rewrite /mcp to /mcp/ so Starlette does not 307 redirect (which drops POST body)."""
+
+    async def wrapper(scope, receive, send):
+        if scope.get("type") == "http" and scope.get("path") == "/mcp":
+            scope["path"] = "/mcp/"
+        await app(scope, receive, send)
+
+    return wrapper
+
+
+app = _normalize_mcp_path_middleware(_starlette_app)
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "8080"))
