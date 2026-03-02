@@ -346,6 +346,30 @@ curl https://email-sender-mcp-jt7pjdeeoa-de.a.run.app/health
 - **部署**: Google Cloud Run
 - **容器**: Docker
 
+## 🔧 專案優化說明
+
+以下優化已套用於程式碼：
+
+| 項目 | 說明 |
+|------|------|
+| **安全性** | `/health` 不再回傳 `email_account`，避免洩漏寄件者信箱。 |
+| **安全性** | Docker 映像不再包含 `.env`，憑證僅由 Cloud Run 環境變數注入。 |
+| **效能** | SMTP 發信改為在 thread pool 執行（`asyncio.to_thread`），避免阻塞事件迴圈。 |
+| **正式環境** | Starlette `debug` 改為依環境變數 `DEBUG`（預設關閉）；需除錯時可設 `DEBUG=1`。 |
+
+**可選的後續優化：**
+
+- **依賴版本**：在 `requirements.txt` 中鎖定套件版本（如 `mcp==1.x.x`）以利重現建置。
+- **單元測試**：使用 pytest 對 `send_email_internal`（mock SMTP）、`/health` 與 tool 列表撰寫測試。
+- **附件支援**：若需 `send_email` 支援 `attachment_path`，需在 server 實作並更新 schema；或從 README 移除該參數說明。
+- **sent_mail.py**：為符合專案規範，可為函式加上 type hints、將註解改為英文，並與 server 共用發信邏輯以減少重複。
+
+本地以 Docker 執行時，請以環境變數傳入帳密，例如：
+
+```bash
+docker run -p 8080:8080 -e EMAIL_ACCOUNT=you@gmail.com -e EMAIL_PASSWORD=app_password your-image
+```
+
 ## 📝 檔案結構
 
 ```
@@ -367,17 +391,3 @@ MCP_sent_mail/
 - [Google Cloud Run 文檔](https://cloud.google.com/run/docs)
 - [Gmail API 設定指南](https://support.google.com/accounts/answer/185833)
 - [Claude Desktop 配置](https://docs.anthropic.com/claude/docs)
-
-## 📄 License
-
-MIT
-
-## 👤 作者
-
-Created with ❤️ by the team
-
----
-
-**部署狀態**: ✅ 已部署  
-**服務 URL**: https://email-sender-mcp-jt7pjdeeoa-de.a.run.app  
-**最後更新**: 2025/10/27

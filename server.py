@@ -4,6 +4,7 @@ MCP Server for Email Sending Service
 Uses Streamable HTTP transport (single /mcp endpoint for GET/POST).
 """
 
+import asyncio
 import contextlib
 import json
 import logging
@@ -113,19 +114,22 @@ async def call_tool(name: str, arguments: Any) -> Sequence[TextContent]:
 
     try:
         if name == "send_email":
-            result = send_email_internal(
+            result = await asyncio.to_thread(
+                send_email_internal,
                 arguments["receiver_email"],
                 arguments["subject"],
                 arguments["body"],
             )
         elif name == "send_halloween_invitation":
-            result = send_email_internal(
+            result = await asyncio.to_thread(
+                send_email_internal,
                 arguments["receiver_email"],
                 "Halloween Invitation",
                 "Hi! You are invited to our Halloween party.",
             )
         elif name == "send_system_alert":
-            result = send_email_internal(
+            result = await asyncio.to_thread(
+                send_email_internal,
                 arguments["receiver_email"],
                 "System login alert",
                 "This is an automated system alert.",
@@ -177,21 +181,20 @@ async def lifespan(app: Starlette):
         logger.info("StreamableHTTP session manager stopped")
 
 
-async def handle_health(request: Request):
-    """Health check."""
+async def handle_health(request: Request) -> JSONResponse:
+    """Health check. Does not expose credentials or email."""
     return JSONResponse(
         {
             "status": "healthy",
             "service": "email-sender-mcp",
             "version": "1.0.0",
             "transport": "streamable-http",
-            "email_account": EMAIL_ACCOUNT,
         }
     )
 
 
 _starlette_app = Starlette(
-    debug=True,
+    debug=os.getenv("DEBUG", "").lower() in ("1", "true", "yes"),
     routes=[
         Route("/health", handle_health, methods=["GET"]),
         Mount("/mcp", streamable_asgi_app),
